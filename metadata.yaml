@@ -1,6 +1,6 @@
 name: astrbot_plugin_playwright_installer # 插件唯一识别名，以 astrbot_plugin_ 前缀开头
 display_name: 自动安装 Playwright 浏览器依赖 # 用于展示的名字，可以是方便人类阅读的名字（需要版本 >= v4.5.0，低版本不会报错，请放心填写）
-desc: 自动安装 Playwright 浏览器依赖，适用于Docker部署和Watchtower组合的用户 # 插件简短描述
+desc: 自动安装 Playwright 浏览器依赖 # 插件简短描述
 version: v1.0.0 # 插件版本号。格式：v1.1.1 或者 v1.1
 author: BUGJI # 作者
 repo: https://github.com/BUGJI/astrbot_plugin_playwright_installer # 插件的仓库地址
