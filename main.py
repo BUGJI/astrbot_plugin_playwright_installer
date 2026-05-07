@@ -5,7 +5,7 @@ import os
 import subprocess
 import asyncio
 
-@register("astrbot_plugin_playwright_installer", "BUGJI", "自动安装 Playwright 浏览器依赖", "1.0.0")
+@register("astrbot_plugin_playwright_installer", "BUGJI", "自动安装 Playwright 浏览器依赖，适用于Docker部署和Watchtower组合的用户", "1.0.0")
 class PlaywrightInstaller(Star):
     def __init__(self, context: Context):
         super().__init__(context)
