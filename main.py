@@ -1,24 +1,73 @@
 from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
+import os
+import subprocess
+import asyncio
 
-@register("helloworld", "YourName", "一个简单的 Hello World 插件", "1.0.0")
-class MyPlugin(Star):
+@register("playwright_installer", "BUGJI", "自动安装 Playwright 浏览器依赖", "1.0.0")
+class PlaywrightInstaller(Star):
     def __init__(self, context: Context):
         super().__init__(context)
 
     async def initialize(self):
-        """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
-
-    # 注册指令的装饰器。指令名为 helloworld。注册成功后，发送 `/helloworld` 就会触发这个指令，并回复 `你好, {user_name}!`
-    @filter.command("helloworld")
-    async def helloworld(self, event: AstrMessageEvent):
-        """这是一个 hello world 指令""" # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
-        user_name = event.get_sender_name()
-        message_str = event.message_str # 用户发的纯文本消息字符串
-        message_chain = event.get_messages() # 用户所发的消息的消息链 # from astrbot.api.message_components import *
-        logger.info(message_chain)
-        yield event.plain_result(f"Hello, {user_name}, 你发了 {message_str}!") # 发送一条纯文本消息
+        """插件初始化时自动安装 playwright chromium 和依赖"""
+        logger.info("开始检查并安装 Playwright 环境...")
+        
+        try:
+            # 检查是否已安装 playwright
+            result = subprocess.run(
+                ["pip", "show", "playwright"],
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode != 0:
+                logger.warning("playwright 未安装，正在安装...")
+                install_result = subprocess.run(
+                    ["pip", "install", "playwright"],
+                    capture_output=True,
+                    text=True
+                )
+                if install_result.returncode != 0:
+                    logger.error(f"安装 playwright 失败: {install_result.stderr}")
+                    return
+            
+            # 安装 chromium
+            logger.info("正在安装 Playwright Chromium...")
+            chromium_result = await asyncio.create_subprocess_exec(
+                "playwright", "install", "chromium",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await chromium_result.communicate()
+            
+            if chromium_result.returncode == 0:
+                logger.info("Playwright Chromium 安装成功")
+            else:
+                logger.error(f"Playwright Chromium 安装失败: {stderr.decode()}")
+            
+            # 安装依赖
+            logger.info("正在安装 Playwright 系统依赖...")
+            deps_result = await asyncio.create_subprocess_exec(
+                "playwright", "install-deps",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await deps_result.communicate()
+            
+            if deps_result.returncode == 0:
+                logger.info("Playwright 系统依赖安装成功")
+            else:
+                logger.error(f"Playwright 系统依赖安装失败: {stderr.decode()}")
+                
+        except FileNotFoundError:
+            logger.error("未找到 playwright 命令，请确保已安装 Playwright")
+        except Exception as e:
+            logger.error(f"安装过程中发生错误: {str(e)}")
+        
+        logger.info("Playwright 安装流程完成")
 
     async def terminate(self):
-        """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
+        """插件卸载时的清理操作"""
+        logger.info("Playwright Installer 插件已卸载")
