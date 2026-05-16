@@ -14,6 +14,13 @@ class PlaywrightInstaller(Star):
         """插件初始化时自动安装 playwright chromium 和依赖"""
         logger.info("开始检查并安装 Playwright 环境...")
         
+        # 创建后台任务，不等待完成
+        asyncio.create_task(self._install_playwright())
+        
+        logger.info("Playwright 安装任务已在后台启动")
+
+    async def _install_playwright(self):
+        """后台执行 Playwright 安装"""
         try:
             # 检查是否已安装 playwright
             result = subprocess.run(
